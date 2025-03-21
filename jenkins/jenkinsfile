@@ -1,0 +1,48 @@
+pipeline {
+    agent any
+    environment {
+        AWS_REGION = "us-east-1"
+        CLUSTER_NAME = "xonotic-cluster"
+        DOCKER_IMAGE = "pururajchoudhary23/xonotics:xonotic-server" // Already built image
+    }
+    stages {
+        stage('Checkout Code') {
+            steps {
+                git 'https://github.com/your-repo/xonotic-devops.git' // Update with your repo
+            }
+        }
+        stage('Configure Kubernetes Context') {
+            steps {
+                sh """
+                aws eks update-kubeconfig --region ${AWS_REGION} --name ${CLUSTER_NAME}
+                kubectl config current-context
+                """
+            }
+        }
+        stage('Deploy Xonotic Server') {
+            steps {
+                sh """
+                sed -i 's|pururajchoudhary23/xonotic-server|${DOCKER_IMAGE}|' k8s/deployment.yaml
+                kubectl apply -f k8s/deployment.yaml
+                kubectl apply -f k8s/service.yaml
+                """
+            }
+        }
+        stage('Deploy Monitoring') {
+            steps {
+                sh """
+                kubectl create namespace monitoring || true
+                kubectl apply -f monitoring/prometheus-deployment.yaml
+                kubectl apply -f monitoring/grafana-deployment.yaml
+                kubectl apply -f monitoring/service.yaml
+                """
+            }
+        }
+        stage('Verify Deployment') {
+            steps {
+                sh "kubectl get pods -A"
+                sh "kubectl get svc -A"
+            }
+        }
+    }
+}

@@ -1,0 +1,20 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: xonotic-server
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: xonotic
+  template:
+    metadata:
+      labels:
+        app: xonotic
+    spec:
+      containers:
+        - name: xonotic
+          image: your-dockerhub-username/xonotic-server:latest
+          ports:
+            - containerPort: 26000
+              protocol: UDP

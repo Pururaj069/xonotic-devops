@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: xonotic-service
+spec:
+  selector:
+    app: xonotic
+  ports:
+    - protocol: UDP
+      port: 26000
+      targetPort: 26000
+  type: LoadBalancer
